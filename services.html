@@ -33,8 +33,8 @@
   .hamburger span{width:24px;height:1.5px;background:var(--white);transition:all 0.3s;display:block}
   nav.scrolled .hamburger span,nav.solid .hamburger span{background:var(--charcoal)}
   .mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;background:rgba(20,20,20,0.97);backdrop-filter:blur(20px);padding:2rem 5vw;z-index:99;flex-direction:column;gap:1.2rem;border-top:1px solid rgba(184,154,106,0.2)}
-  .mobile-menu.open{display:flex}
-  .mobile-menu a{font-size:0.8rem;font-weight:400;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);text-decoration:none;padding-bottom:0.9rem;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.3s}
+  .mobile-menu.open{display:flex;z-index:9990}
+  .mobile-menu a{font-size:0.8rem;font-weight:400;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);text-decoration:none;padding-bottom:0.9rem;border-bottom:1px solid rgba(255,255,255,0.06);transition:color 0.3s;display:block;cursor:pointer;-webkit-tap-highlight-color:rgba(184,154,106,0.3);position:relative;z-index:9991}
   .mobile-menu a:hover,.mobile-menu a.active{color:var(--gold)}
   .mobile-menu .nav-cta{color:var(--charcoal)!important;width:100%;text-align:center;border-bottom:none;padding-bottom:9px}
   footer{background:#141414;padding:60px 5vw 26px}
@@ -148,7 +148,7 @@
 @media(max-width:768px){.svc-item{grid-template-columns:1fr}.svc-item.reverse{direction:ltr}.svc-img{height:240px}.svc-content{padding:2.2rem 1.8rem}}
 </style>
 </head>
-<body><nav id="mainNav" class="solid"><a href="index.html" class="nav-logo"><span class="nav-logo-main">Mann Property Group</span><span class="nav-logo-sub">Premium Real Estate</span></a><ul class="nav-links"><li><a href='index.html'>Home</a></li><li><a href='about.html'>About</a></li><li><a href='services.html' class="active">Services</a></li><li><a href='properties.html'>Properties</a></li><li><a href='testimonials.html'>Testimonials</a></li><li><a href='contact.html'>Contact</a></li><li><a href="contact.html" class="nav-cta">Book Consultation</a></li></ul><div class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></div></nav><div class="mobile-menu" id="mobileMenu"><a href='index.html'>Home</a><a href='about.html'>About</a><a href='services.html' class="active">Services</a><a href='properties.html'>Properties</a><a href='testimonials.html'>Testimonials</a><a href='contact.html'>Contact</a><a href="contact.html" class="nav-cta">Book Consultation</a></div>
+<body><nav id="mainNav" class="solid"><a href="index.html" class="nav-logo"><span class="nav-logo-main">Mann Property Group</span><span class="nav-logo-sub">Premium Real Estate</span></a><ul class="nav-links"><li><a href='index.html'>Home</a></li><li><a href='about.html'>About</a></li><li><a href='services.html' class="active">Services</a></li><li><a href='properties.html'>Properties</a></li><li><a href='testimonials.html'>Testimonials</a></li><li><a href='contact.html'>Contact</a></li><li><a href="contact.html" class="nav-cta">Book Consultation</a></li></ul><div class="hamburger" id="hamburger" onclick="toggleMenu(event)"><span></span><span></span><span></span></div></nav><div class="mobile-menu" id="mobileMenu"><a href='index.html'>Home</a><a href='about.html'>About</a><a href='services.html' class="active">Services</a><a href='properties.html'>Properties</a><a href='testimonials.html'>Testimonials</a><a href='contact.html'>Contact</a><a href="contact.html" class="nav-cta">Book Consultation</a></div>
 <div class="page-hero">
   <div class="page-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1400')"></div>
   <div class="page-hero-inner">
@@ -305,8 +305,24 @@
 <script>
   const nav=document.getElementById('mainNav');
   window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>60));
-  function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open')}
-  document.addEventListener('click',e=>{const m=document.getElementById('mobileMenu'),h=document.getElementById('hamburger');if(m&&h&&!m.contains(e.target)&&!h.contains(e.target))m.classList.remove('open')});
+  function toggleMenu(e){
+    if(e) e.stopPropagation();
+    var menu=document.getElementById('mobileMenu');
+    menu.classList.toggle('open');
+  }
+  // Close mobile menu only on outside click — never intercept link taps
+  document.addEventListener('click',function(e){
+    var menu=document.getElementById('mobileMenu');
+    var ham=document.getElementById('hamburger');
+    if(!menu||!ham) return;
+    // If click is inside menu but on a link, let it navigate — just close menu
+    if(menu.contains(e.target)&&e.target.tagName==='A') {
+      menu.classList.remove('open'); return;
+    }
+    if(!menu.contains(e.target)&&!ham.contains(e.target)){
+      menu.classList.remove('open');
+    }
+  });
   const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}}),{threshold:0.1,rootMargin:'0px 0px -30px 0px'});
   document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
   // WA
@@ -314,7 +330,15 @@
   function waKeyDown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();waSend()}}
   function waAutoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,86)+'px'}
   function waSend(){const inp=document.getElementById('waInput'),msg=inp.value.trim();if(!msg)return;document.getElementById('waTyping').classList.add('show');inp.value='';inp.style.height='auto';const full='Hi Mann Property Group, I found you on your website.\n\n'+msg;setTimeout(()=>{document.getElementById('waTyping').classList.remove('show');window.open('https://wa.me/61401050235?text='+encodeURIComponent(full),'_blank')},900)}
-  document.addEventListener('click',e=>{const w=document.getElementById('wa-widget');if(w&&!w.contains(e.target)){document.getElementById('wa-panel').classList.remove('open');document.getElementById('wa-bubble').classList.remove('open')}});
+  document.addEventListener('click',function(e){
+    var w=document.getElementById('wa-widget');
+    if(!w||w.contains(e.target)) return;
+    // Don't close if inside mobile menu area
+    var menu=document.getElementById('mobileMenu');
+    if(menu&&menu.contains(e.target)) return;
+    document.getElementById('wa-panel').classList.remove('open');
+    document.getElementById('wa-bubble').classList.remove('open');
+  });
 </script>
 
 </body>
